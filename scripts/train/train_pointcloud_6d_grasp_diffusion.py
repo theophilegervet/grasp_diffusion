@@ -8,9 +8,7 @@ from torch.utils.data import DataLoader
 
 from se3dif import datasets, losses, summaries, trainer
 from se3dif.models import loader
-
 from se3dif.utils import load_experiment_specifications
-
 from se3dif.trainer.learning_rate_scheduler import get_learning_rate_schedules
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -53,7 +51,6 @@ def main(opt):
     root_dir = opt.saving_root
     exp_dir  = os.path.join(root_dir, args['exp_log_dir'])
     args['saving_folder'] = exp_dir
-
 
     if opt.device =='cuda':
         if 'cuda_device' in args:

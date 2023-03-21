@@ -20,7 +20,7 @@ def load_experiment_specifications(experiment_directory):
 
 
 def dict_to_device(ob, device):
-    if isinstance(ob, collections.Mapping):
+    if isinstance(ob, collections.abc.Mapping):
         return {k: dict_to_device(v, device) for k, v in ob.items()}
     else:
         return ob.to(device)
