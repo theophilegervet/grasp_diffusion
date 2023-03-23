@@ -6,7 +6,6 @@ from PIL import Image
 from pyglet import gl
 
 
-
 def create_gripper_marker(color=[0, 0, 255], tube_radius=0.001, sections=6, scale = 1.):
     """Create a 3D mesh visualizing a parallel yaw gripper. It consists of four cylinders.
 
@@ -70,7 +69,6 @@ def visualize_points(model, input):
     with torch.no_grad():
         x, sdf = model.get_points_and_features(input)
 
-
     ## Visualization points ##
     point_clouds = input['point_cloud'].cpu().numpy()
     x = x[0,0,...].cpu().numpy()
@@ -96,7 +94,6 @@ def visualize_points(model, input):
     colors[:, 2] = 255. * (delta_c23 - np.clip(sdf, c2_trhs, c3_trhs)) / delta_c23
 
     pc2.colors = colors
-
 
     print('max occ: ', sdf[...].max())
     print('min occ: ', sdf[...].min())
@@ -196,7 +193,6 @@ def get_scene_grasps_image(Hs, scale=1., p_cloud=None, energies=None, colors=Non
         scene = trimesh.Scene(grips)
 
     window_conf = gl.Config(double_buffer=True, depth_size=24)
-    data = scene.save_image(resolution=[1080, 1080],
-                           window_conf=window_conf, visible=False)
+    data = scene.save_image(resolution=[1080, 1080], window_conf=window_conf, visible=False)
     image = np.array(Image.open(io.BytesIO(data)))
     return image

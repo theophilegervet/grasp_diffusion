@@ -7,18 +7,17 @@ def get_losses(args):
 
     loss_fns = {}
     if 'sdf_loss' in losses:
-        loss_fns['sdf'] = SDFLoss().loss_fn
+        loss_fns['loss/sdf'] = SDFLoss().loss_fn
     if 'projected_denoising_loss' in losses:
-        loss_fns['denoise'] = ProjectedSE3DenoisingLoss().loss_fn
+        loss_fns['loss/denoise'] = ProjectedSE3DenoisingLoss().loss_fn
     if 'denoising_loss' in losses:
-        loss_fns['denoise'] = SE3DenoisingLoss().loss_fn
+        loss_fns['loss/denoise'] = SE3DenoisingLoss().loss_fn
 
     loss_dict = LossDictionary(loss_dict=loss_fns)
     return loss_dict
 
 
 class LossDictionary():
-
     def __init__(self, loss_dict):
         self.fields = loss_dict.keys()
         self.loss_dict = loss_dict

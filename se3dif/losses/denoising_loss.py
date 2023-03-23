@@ -8,8 +8,7 @@ from theseus import SO3
 
 
 class ProjectedSE3DenoisingLoss():
-    def __init__(self, field='denoise', delta = 1., grad=False):
-        self.field = field
+    def __init__(self, delta=1., grad=False):
         self.delta = delta
         self.grad = grad
 
@@ -49,15 +48,14 @@ class ProjectedSE3DenoisingLoss():
         loss_fn = nn.L1Loss()
         loss = loss_fn(grad_energy, z_target)/10.
 
-        info = {self.field: grad_energy}
-        loss_dict = {"Score loss": loss}
+        info = {"grad_energy": grad_energy}
+        loss_dict = {"loss/score": loss}
         return loss_dict, info
 
 
 class SE3DenoisingLoss():
 
-    def __init__(self, field='denoise', delta = 1., grad=False):
-        self.field = field
+    def __init__(self, delta=1., grad=False):
         self.delta = delta
         self.grad = grad
 
@@ -119,7 +117,6 @@ class SE3DenoisingLoss():
         loss_fn = nn.L1Loss()
         loss = loss_fn(grad_energy, -target_score)/20.
 
-        info = {self.field: energy}
-        loss_dict = {"Score loss": loss}
+        info = {"energy": energy}
+        loss_dict = {"loss/score": loss}
         return loss_dict, info
-

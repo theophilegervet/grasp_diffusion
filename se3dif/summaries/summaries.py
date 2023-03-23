@@ -9,7 +9,7 @@ class SummaryDict():
 
     def compute_summary(self, model, model_input, ground_truth, info , writer, iter, prefix=""):
         for field in self.fields:
-            prefix_in = prefix + field
+            prefix_in = prefix + field + "/"
             self.summaries[field](model, model_input, ground_truth, info, writer, iter, prefix_in)
 
 

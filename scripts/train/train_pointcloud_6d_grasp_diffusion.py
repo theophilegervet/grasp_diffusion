@@ -36,6 +36,7 @@ def parse_args():
 
     p.add_argument('--device',  type=str, default='cuda',)
     p.add_argument('--class_type', type=str, default='Mug')
+    p.add_argument('--logger', type=str, choices=['tensorboard', 'wandb'], default='wandb')
 
     opt = p.parse_args()
     return opt
@@ -97,13 +98,16 @@ def main(opt):
         ])
 
     # Train
-    trainer.train(model=model.float(), train_dataloader=train_dataloader, epochs=args['TrainSpecs']['num_epochs'], model_dir= exp_dir,
-                summary_fn=summary, device=device, lr=1e-4, optimizers=[optimizer],
-                steps_til_summary=args['TrainSpecs']['steps_til_summary'],
-                epochs_til_checkpoint=args['TrainSpecs']['epochs_til_checkpoint'],
-                loss_fn=loss_fn, iters_til_checkpoint=args['TrainSpecs']['iters_til_checkpoint'],
-                clip_grad=False, val_loss_fn=val_loss_fn, overwrite=True,
-                val_dataloader=test_dataloader)
+    trainer.train(
+        model=model.float(), args=args, train_dataloader=train_dataloader,
+        epochs=args['TrainSpecs']['num_epochs'], model_dir= exp_dir,
+        summary_fn=summary, device=device, lr=1e-4, optimizers=[optimizer],
+        steps_til_summary=args['TrainSpecs']['steps_til_summary'],
+        epochs_til_checkpoint=args['TrainSpecs']['epochs_til_checkpoint'],
+        loss_fn=loss_fn, iters_til_checkpoint=args['TrainSpecs']['iters_til_checkpoint'],
+        clip_grad=False, val_loss_fn=val_loss_fn, overwrite=True,
+        val_dataloader=test_dataloader, logger=opt.logger,
+    )
 
 
 if __name__ == '__main__':
