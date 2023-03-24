@@ -49,7 +49,7 @@ class ProjectedSE3DenoisingLoss():
         loss = loss_fn(grad_energy, z_target)/10.
 
         info = {"grad_energy": grad_energy}
-        loss_dict = {"loss/score": loss}
+        loss_dict = {"loss/denoising": loss}
         return loss_dict, info
 
 
@@ -118,5 +118,5 @@ class SE3DenoisingLoss():
         loss = loss_fn(grad_energy, -target_score)/20.
 
         info = {"energy": energy}
-        loss_dict = {"loss/score": loss}
+        loss_dict = {"loss/denoising": loss}
         return loss_dict, info

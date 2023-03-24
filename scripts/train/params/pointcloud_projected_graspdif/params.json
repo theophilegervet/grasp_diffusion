@@ -3,7 +3,8 @@
   "exp_log_dir": "aaa_train_pointcloud_projected_graspdif",
   "single_object": false,
   "TrainSpecs": {
-    "batch_size": 2,
+    "batch_size": 6,
+    "num_workers": 2,
     "num_epochs": 90000,
     "steps_til_summary": 500,
     "iters_til_checkpoint": 1000,

@@ -13,4 +13,17 @@ cd mesh_to_sdf; pip install -e .; cd ..;
 ## Download Data and Trained Models
 
 Refer to original Readme to download data and trained models. 
-They should be in the same directory.
+
+## Train
+
+Train pointcloud conditioned model
+```
+python scripts/train/train_pointcloud_6d_grasp_diffusion.py
+```
+
+Train partial pointcloud conditioned model
+```
+python scripts/train/train_partial_pointcloud_6d_grasp_diffusion.py
+```
+
+If you are training on a machine with a display, you can add `--summary 1` to the commands above to log visualizations of the generated grasps and SDF during training.
