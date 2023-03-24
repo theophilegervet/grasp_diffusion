@@ -63,5 +63,5 @@ if __name__ == '__main__':
     mesh = acronym_grasps.avail_obj[obj_id].load_mesh()
 
     vis_H = H.squeeze()
-    grasp_visualization.visualize_grasps(to_numpy(H), mesh=mesh)
+    grasp_visualization.visualize_grasps_trimesh(to_numpy(H), mesh=mesh)
 

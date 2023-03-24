@@ -101,5 +101,5 @@ if __name__ == '__main__':
     vis_H = H.squeeze()
     P *=1/8
     mesh = mesh.apply_scale(1/8)
-    grasp_visualization.visualize_grasps(to_numpy(H), p_cloud=P)#, mesh=mesh)
+    grasp_visualization.visualize_grasps_trimesh(to_numpy(H), p_cloud=P)#, mesh=mesh)
 

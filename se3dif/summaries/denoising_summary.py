@@ -26,12 +26,12 @@ def denoising_summary(model, model_input, ground_truth, info, writer, iter, pref
         point_cloud = to_numpy(model_input['point_cloud'])[0,...]/8.
 
     try:
-        image = grasp_visualization.get_scene_grasps_image(H, p_cloud=point_cloud)
+        image = grasp_visualization.get_scene_grasps_image(H, p_cloud=point_cloud, library="trimesh")
         figure = plt.figure()
         plt.imshow(image)
 
         if writer == "wandb":
-            writer.log({"diffusion/generated_grasps": wandb.Image(figure)}, step=iter)
+            wandb.log({"diffusion/generated_grasps": wandb.Image(figure)}, step=iter)
         elif writer == "tensorboard":
             writer.add_figure("diffusion/generated_grasps", figure, global_step=iter)
 

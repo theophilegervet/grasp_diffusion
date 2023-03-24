@@ -107,7 +107,7 @@ if __name__ == '__main__':
     for t in range(T.shape[0]):
 
         vis_H = trj_H[T[t],...]
-        scene = grasp_visualization.visualize_grasps(to_numpy(vis_H), colors=colors, mesh=mesh, show=False)
+        scene = grasp_visualization.visualize_grasps_trimesh(to_numpy(vis_H), colors=colors, mesh=mesh, show=False)
         scene.set_camera(distance=.6, center=[0., 0., 0.], angles=[0.8, 0.0, 0.8])
 
         ## Save as .png
