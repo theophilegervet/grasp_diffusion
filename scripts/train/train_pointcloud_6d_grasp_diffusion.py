@@ -28,6 +28,9 @@ def parse_args():
     p.add_argument('--summary', type=bool, default=False
                    , help='activate or deactivate summary')
 
+    p.add_argument('--overfit_one_object', type=bool, default=False
+                   , help='overfit a single object for debugging')
+
     p.add_argument('--saving_root', type=str, default=os.path.join(get_root_src(), 'logs')
                    , help='root for saving logging')
 
@@ -63,12 +66,14 @@ def main(opt):
         device = torch.device('cpu')
 
     ## Dataset
+    if opt.overfit_one_object:
+        args['single_object'] = True
     train_dataset = datasets.PointcloudAcronymAndSDFDataset(augmented_rotation=True, one_object=args['single_object'])
     train_dataloader = DataLoader(
         train_dataset,
         num_workers=args['TrainSpecs']['num_workers'],
         batch_size=args['TrainSpecs']['batch_size'],
-        shuffle=True, drop_last=True
+        shuffle=not args['single_object'], drop_last=True
     )
     test_dataset = copy.deepcopy(train_dataset)
     test_dataset.set_test_data()

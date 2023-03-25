@@ -27,3 +27,5 @@ python scripts/train/train_partial_pointcloud_6d_grasp_diffusion.py
 ```
 
 If you are training on a machine with a display, you can add `--summary 1` to the commands above to log visualizations of the generated grasps and SDF during training.
+
+To overfit a single object for debugging, you can add `--overfit_one_object 1`.

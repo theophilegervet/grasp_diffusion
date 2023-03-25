@@ -146,7 +146,6 @@ class AcronymAndSDFDataset(Dataset):
             self.sdf_files = sdf_files[idx:]
             self.indexes = indexes[idx:]
 
-
         self.len = len(self.points_files)
 
         self.n_pointcloud = n_pointcloud
