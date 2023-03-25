@@ -17,7 +17,6 @@ class ProjectedSE3DenoisingLoss():
         return torch.sqrt((sigma ** (2 * t) - 1.) / (2. * np.log(sigma)))
 
     def loss_fn(self, model, model_input, ground_truth, val=False, eps=1e-5):
-
         ## Set input ##
         H = model_input['x_ene_pos']
         c = model_input['visual_context']

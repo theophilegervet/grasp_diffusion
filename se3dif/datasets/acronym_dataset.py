@@ -273,9 +273,16 @@ class PointcloudAcronymAndSDFDataset(Dataset):
                                    'Sheep', 'Shower', 'Sink', 'SoapBottle', 'SodaCan','Spoon', 'Statue', 'Teacup', 'Teapot', 'ToiletPaper',
                                    'ToyFigure', 'Wallet','WineGlass',
                                    'Cow', 'Sheep', 'Cat', 'Dog', 'Pizza', 'Elephant', 'Donkey', 'RubiksCube', 'Tank', 'Truck', 'USBStick'],
-                 se3=False, phase='train', one_object=False,
+                 phase='train', one_object=False,
                  n_pointcloud = 1000, n_density = 200, n_coords = 1000,
                  augmented_rotation=True, visualize=False, split = True):
+        """
+        Args:
+            n_pointcloud: number of sub-sampled points in input point cloud
+            n_density: number of sub-sampled positive grasps
+            n_coords: number of sub-sampled points for SDF prediction
+            augmented_rotation: whether to add a random rotation as data augmentation
+        """
 
         #class_type = ['Mug']
         self.class_type = class_type
@@ -311,7 +318,6 @@ class PointcloudAcronymAndSDFDataset(Dataset):
         ## Variables on Data
         self.one_object = one_object
         self.augmented_rotation = augmented_rotation
-        self.se3 = se3
 
         ## Visualization
         self.visualize = visualize
@@ -381,20 +387,21 @@ class PointcloudAcronymAndSDFDataset(Dataset):
         sdf = sdf*self.scale
         pcl = pcl*self.scale
         H_grasps[..., :3, -1] = H_grasps[..., :3, -1]*self.scale
-        ## Random rotation ##
-        R = special_ortho_group.rvs(3)
-        H = np.eye(4)
-        H[:3, :3] = R
-        mean = np.mean(pcl, 0)
+
         ## translate ##
+        mean = np.mean(pcl, 0)
         xyz = xyz - mean
         pcl = pcl - mean
         H_grasps[..., :3, -1] = H_grasps[..., :3, -1] - mean
-        ## rotate ##
-        pcl = np.einsum('mn,bn->bm',R, pcl)
-        xyz = np.einsum('mn,bn->bm',R, xyz)
-        H_grasps = np.einsum('mn,bnk->bmk', H, H_grasps)
-        #######################
+
+        ## Random rotation ##
+        if self.augmented_rotation:
+            R = special_ortho_group.rvs(3)
+            H = np.eye(4)
+            H[:3, :3] = R
+            pcl = np.einsum('mn,bn->bm',R, pcl)
+            xyz = np.einsum('mn,bn->bm',R, xyz)
+            H_grasps = np.einsum('mn,bnk->bmk', H, H_grasps)
 
         # Visualize
         if self.visualize:
