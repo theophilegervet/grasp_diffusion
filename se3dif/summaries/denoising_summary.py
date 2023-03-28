@@ -40,7 +40,7 @@ def denoising_summary(model, model_input, ground_truth, info, writer, iter, pref
                 with tempfile.NamedTemporaryFile(suffix='.glb', delete=False) as tmp_file:
                     scene.export(tmp_file.name, file_type='glb')
                     tmp_file.flush()
-                    wandb.log({prefix + name :wandb.Object3D(tmp_file.name)})
+                    wandb.log({prefix + name : wandb.Object3D(tmp_file.name)}, step=iter)
             elif writer == "tensorboard":
                 image = grasp_visualization.get_scene_grasps_image(H, colors=grasp_colors, p_cloud=point_cloud)
                 figure = plt.figure()
