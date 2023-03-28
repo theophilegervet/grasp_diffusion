@@ -5,7 +5,6 @@ import io
 from PIL import Image
 from pyglet import gl
 
-
 def create_gripper_marker(color=[0, 0, 255], tube_radius=0.001, sections=6, scale = 1.):
     """Create a 3D mesh visualizing a parallel yaw gripper. It consists of four cylinders.
 
@@ -101,7 +100,7 @@ def visualize_points(model, input):
     trimesh.Scene([p_cloud_tri, pc2, grip]).show()
 
 
-def visualize_grasps(Hs, scale=1., p_cloud=None, energies=None, colors=None, mesh=None, show=True):
+def visualize_grasps(Hs, scale=1., p_cloud=None, energies=None, colors=None, mesh=None, p_cloud_color=[0, 0, 1, 0], spheres_for_points=False, show=True):
     ## Set color list
     if colors is None:
         if energies is None:
@@ -130,8 +129,17 @@ def visualize_grasps(Hs, scale=1., p_cloud=None, energies=None, colors=None, mes
     if mesh is not None:
         scene = trimesh.Scene([mesh]+ grips)
     elif p_cloud is not None:
-        p_cloud_tri = trimesh.points.PointCloud(p_cloud)
-        scene = trimesh.Scene([p_cloud_tri]+ grips)
+        c_vis = np.array([int(x*254) for x in p_cloud_color]) * np.ones((p_cloud.shape[0], 4))
+        p_cloud_tri = trimesh.points.PointCloud(p_cloud, colors=c_vis)
+        if spheres_for_points:
+            spheres = []
+            for point in p_cloud_tri.vertices:
+                sphere = trimesh.creation.icosphere(radius=0.001, color=c_vis[0, :])
+                sphere.apply_translation(point)
+                spheres.append(sphere)
+            scene = trimesh.Scene(spheres + grips)
+        else:
+            scene = trimesh.Scene([p_cloud_tri] + grips)
     else:
         scene = trimesh.Scene(grips)
 

@@ -8,7 +8,6 @@ root_directory = os.path.abspath(os.path.join(base_dir, '..'))
 ## Set data directory
 data_directory = os.path.abspath(os.path.join(root_directory, 'datasets/analogical_grasping'))
 
-
 def get_pretrained_models_src():
     directory = osp.join(data_directory, 'models')
     makedirs(directory)

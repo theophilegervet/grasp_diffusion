@@ -28,7 +28,6 @@ import logging
 logger = logging.getLogger("trimesh")
 logger.setLevel(logging.ERROR)
 
-
 class AcronymGrasps():
     def __init__(self, filename):
 
