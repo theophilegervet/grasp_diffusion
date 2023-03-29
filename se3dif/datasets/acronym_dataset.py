@@ -176,9 +176,10 @@ class AcronymAndSDFDataset(Dataset):
             sdf_dict = pickle.load(handle)
 
         ## PointCloud
-        p_clouds = sdf_dict['pcl']
+        # p_clouds = grasps_obj.load_mesh().sample(self.n_pointcloud)
+        p_clouds = sdf_dict['pcl']  # No "pcl" in sdf_dict
         rix = np.random.permutation(p_clouds.shape[0])
-        p_clouds = p_clouds[rix[:self.n_pointcloud],:]
+        p_clouds = p_clouds[rix[:self.n_pointcloud], :]
 
         ## Coordinates XYZ
         coords  = sdf_dict['xyz']
@@ -222,7 +223,6 @@ class AcronymAndSDFDataset(Dataset):
             H_bad_grasps = np.einsum('mn,bnd->bmd', H, H_bad_grasps)
 
             grad_sdf = np.einsum('mn,bn->bm', R, grad_sdf)
-
 
         # Visualize
         if self.visualize:

@@ -1,5 +1,6 @@
 from .denoising_loss import ProjectedSE3DenoisingLoss, SE3DenoisingLoss
 from .sdf_loss import SDFLoss
+from se3dif.grasp_diffusion_parametric_baseline.losses import NoisePredictionLoss
 
 
 def get_losses(args):
@@ -12,6 +13,8 @@ def get_losses(args):
         loss_fns['loss/denoise'] = ProjectedSE3DenoisingLoss().loss_fn
     if 'denoising_loss' in losses:
         loss_fns['loss/denoise'] = SE3DenoisingLoss().loss_fn
+    if 'noise_prediction_loss' in losses:
+        loss_fns['loss/noise_prediction'] = NoisePredictionLoss(args).loss_fn
 
     loss_dict = LossDictionary(loss_dict=loss_fns)
     return loss_dict

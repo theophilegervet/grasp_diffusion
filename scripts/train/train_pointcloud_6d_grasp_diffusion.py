@@ -1,5 +1,7 @@
 import os
 import copy
+import random
+import numpy as np
 import configargparse
 from se3dif.utils import get_root_src
 
@@ -10,6 +12,7 @@ from se3dif import datasets, losses, summaries, trainer
 from se3dif.models import loader
 from se3dif.utils import load_experiment_specifications
 from se3dif.trainer.learning_rate_scheduler import get_learning_rate_schedules
+from se3dif.grasp_diffusion_parametric_baseline.model import GraspDiffusionParametricBaseline
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
 root_dir = os.path.abspath(os.path.dirname(__file__ + '/../../../../../'))
@@ -40,12 +43,16 @@ def parse_args():
     p.add_argument('--device',  type=str, default='cuda',)
     p.add_argument('--class_type', type=str, default='Mug')
     p.add_argument('--logger', type=str, choices=['tensorboard', 'wandb'], default='wandb')
+    p.add_argument('--seed', type=int, default=4)
 
     opt = p.parse_args()
     return opt
 
 
 def main(opt):
+    torch.manual_seed(opt.seed)
+    np.random.seed(opt.seed)
+    random.seed(opt.seed)
 
     ## Load training args ##
     spec_file = os.path.join(opt.specs_file_dir, opt.spec_file)
@@ -68,7 +75,10 @@ def main(opt):
     ## Dataset
     if opt.overfit_one_object:
         args['single_object'] = True
-    train_dataset = datasets.PointcloudAcronymAndSDFDataset(augmented_rotation=True, one_object=args['single_object'])
+    train_dataset = datasets.PointcloudAcronymAndSDFDataset(
+        augmented_rotation=not args['single_object'],
+        one_object=args['single_object']
+    )
     train_dataloader = DataLoader(
         train_dataset,
         num_workers=args['TrainSpecs']['num_workers'],
@@ -95,8 +105,9 @@ def main(opt):
     summary = summaries.get_summary(args, opt.summary)
 
     ## Optimizer
-    lr_schedules = get_learning_rate_schedules(args)
-    optimizer = torch.optim.Adam([
+    if type(model) not in [GraspDiffusionParametricBaseline]:
+        lr_schedules = get_learning_rate_schedules(args)
+        optimizer = torch.optim.Adam([
             {
                 "params": model.vision_encoder.parameters(),
                 "lr": lr_schedules[0].get_learning_rate(0),
@@ -110,6 +121,8 @@ def main(opt):
                 "lr": lr_schedules[2].get_learning_rate(0),
             },
         ])
+    else:
+        optimizer = None
 
     # Train
     trainer.train(

@@ -4,9 +4,8 @@ import torch.nn as nn
 import numpy as np
 
 from se3dif import models
-
-
 from se3dif.utils import get_pretrained_models_src, load_experiment_specifications
+from se3dif.grasp_diffusion_parametric_baseline.model import GraspDiffusionParametricBaseline
 pretrained_models_dir = get_pretrained_models_src()
 
 
@@ -21,7 +20,8 @@ def load_model(args):
         model = load_grasp_diffusion(args)
     elif args['NetworkArch'] == 'PointcloudGraspDiffusion':
         model = load_pointcloud_grasp_diffusion(args)
-
+    elif args['NetworkArch'] == 'GraspDiffusionParametricBaseline':
+        model = load_grasp_diffusion_parametric_baseline(args)
 
     if 'pretrained_model' in args:
         model_path = os.path.join(pretrained_models_dir, args['pretrained_model'], 'model.pth')
@@ -135,4 +135,10 @@ def load_pointcloud_grasp_diffusion(args):
 
     model = models.GraspDiffusionFields(vision_encoder=vision_encoder, feature_encoder=feature_encoder, geometry_encoder=geometry_encoder,
                                        decoder=energy_net, points=points).to(device)
+    return model
+
+
+def load_grasp_diffusion_parametric_baseline(args):
+    device = args['device']
+    model = GraspDiffusionParametricBaseline().to(device)
     return model

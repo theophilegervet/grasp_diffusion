@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 
 
-
 class GraspDiffusionFields(nn.Module):
     ''' Grasp DiffusionFields. SE(3) diffusion model to learn 6D grasp distributions. See
         SE(3)-DiffusionFields: Learning cost functions for joint grasp and motion optimization through diffusion

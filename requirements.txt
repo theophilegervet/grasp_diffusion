@@ -11,3 +11,5 @@ torchvision==0.14.1
 tensorboard==2.10.0
 natsort==8.2.0
 wandb
+einops
+roma
