@@ -7,6 +7,7 @@ from se3dif.samplers import Grasp_AnnealedLD
 from se3dif.utils import to_numpy
 from se3dif.visualization import grasp_visualization
 import tempfile
+from se3dif.eval import earth_mover_distance
 
 import numpy as np
 
@@ -14,18 +15,22 @@ def denoising_summary(model, model_input, ground_truth, info, writer, iter, pref
     num_grasps = 15
 
     observation = model_input['visual_context']
-    batch = num_grasps
+    # number of grasps to generate
+    batch = 200
 
     ## 1. visualize generated grasps ##
     model.eval()
-    model.set_latent(observation[:1,...], batch=batch)
+    model.set_latent(observation[:1, ...], batch=batch)
     generator = Grasp_AnnealedLD(model, batch=batch, T=30, T_fit=50, device=observation.device)
     H, trj_H = generator.sample(save_path=True)
+    # squeezed because of batch size 1
+    H = H.unsqueeze(0)
+    trj_H = trj_H.unsqueeze(0)
 
-    H = to_numpy(H)
-    H[:, :3, -1]*=1/8
-    trj_H = to_numpy(trj_H)
-    trj_H[..., :3, -1] *=1/8.
+    H_norm = to_numpy(H[0, :num_grasps, ...]).copy()
+    H_norm[:, :3, -1] *= 1/8
+    trj_H = to_numpy(trj_H[0, :num_grasps, ...])
+    trj_H[..., :3, -1] *= 1/8.
 
     if observation.dim()==3:
         point_cloud = to_numpy(model_input['visual_context'])[0,...]/8.
@@ -53,7 +58,7 @@ def denoising_summary(model, model_input, ground_truth, info, writer, iter, pref
             traceback.print_exc()
             print("No display found. Skipping grasp visualization.")
     
-    write_grasps(H, "generated_grasps")
+    write_grasps(H_norm, "generated_grasps")
     gt_grasps = model_input["x_ene_pos"][0, :num_grasps, :, :].cpu().numpy().copy()
     gt_grasps[:, :3, -1]*=1/8
     write_grasps(gt_grasps, "ground_truth_grasps")
@@ -64,3 +69,14 @@ def denoising_summary(model, model_input, ground_truth, info, writer, iter, pref
     # Colors from red to green as the trajectory progresses
     colors = np.linspace([255, 0, 0], [0, 255, 0], num=T.shape[0]).astype(np.int8)
     write_grasps(trj_H, "diffusion_trajectory", grasp_colors=colors)
+
+    # log earth mover distances
+    emd = 0
+    for i in range(H.shape[0]):
+        emd += earth_mover_distance.earth_mover_distance(H[i], model_input["x_ene_pos"][i])
+    emd /= H.shape[0]
+    print("emd", emd)
+    if writer == "wandb":
+        wandb.log({prefix+"emd" : emd}, step=iter)
+    else:
+        writer.add_scalar(prefix + "emd", emd, iter)
