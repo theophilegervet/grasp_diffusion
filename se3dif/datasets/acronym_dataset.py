@@ -174,6 +174,7 @@ class AcronymAndSDFDataset(Dataset):
         with open(sdf_file, 'rb') as handle:
             sdf_dict = pickle.load(handle)
 
+        print(sdf_dict)
         ## PointCloud
         p_clouds = sdf_dict['pcl']
         rix = np.random.permutation(p_clouds.shape[0])
@@ -628,10 +629,10 @@ if __name__ == '__main__':
     dataset = AcronymAndSDFDataset(visualize=True, augmented_rotation=True, one_object=False)
 
     ## Pointcloud conditioned dataset
-    dataset = PointcloudAcronymAndSDFDataset(visualize=True, augmented_rotation=True, one_object=False)
+    #dataset = PointcloudAcronymAndSDFDataset(visualize=True, augmented_rotation=True, one_object=False)
 
     ## Pointcloud conditioned dataset
-    dataset = PartialPointcloudAcronymAndSDFDataset(visualize=False, augmented_rotation=True, one_object=False)
+    #dataset = PartialPointcloudAcronymAndSDFDataset(visualize=False, augmented_rotation=True, one_object=False)
 
     train_dataloader = DataLoader(dataset, batch_size=10, shuffle=True)
     for x,y in train_dataloader:

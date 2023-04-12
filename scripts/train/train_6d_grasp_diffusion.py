@@ -37,6 +37,7 @@ def parse_args():
 
     p.add_argument('--device',  type=str, default='cuda',)
     p.add_argument('--class_type', type=str, default='Mug')
+    p.add_argument('--logger', type=str, choices=['tensorboard', 'wandb'], default='wandb')
 
     opt = p.parse_args()
     return opt
@@ -65,7 +66,12 @@ def main(opt):
 
     ## Dataset
     train_dataset = datasets.AcronymAndSDFDataset(class_type=opt.class_type, augmented_rotation=False, one_object=args['single_object'])
-    train_dataloader = DataLoader(train_dataset, batch_size=args['TrainSpecs']['batch_size'], shuffle=True, drop_last=True)
+    train_dataloader = DataLoader(
+        train_dataset,
+        num_workers=args['TrainSpecs']['num_workers'],
+        batch_size=args['TrainSpecs']['batch_size'],
+        shuffle=True,
+        drop_last=True)
 
     val_dataset = datasets.AcronymAndSDFDataset(class_type=opt.class_type, augmented_rotation=False, phase='validation')
     val_dataloader = DataLoader(val_dataset, batch_size=args['TrainSpecs']['batch_size'], shuffle=True, drop_last=True)
@@ -99,12 +105,13 @@ def main(opt):
         ])
 
     # Train
-    trainer.train(model=model.float(), train_dataloader=train_dataloader, epochs=args['TrainSpecs']['num_epochs'], model_dir= exp_dir,
+    trainer.train(model=model.float(), args=args, train_dataloader=train_dataloader, epochs=args['TrainSpecs']['num_epochs'], model_dir= exp_dir,
                 summary_fn=summary, device=device, lr=1e-4, optimizers=[optimizer],
                 steps_til_summary=args['TrainSpecs']['steps_til_summary'],
                 epochs_til_checkpoint=args['TrainSpecs']['epochs_til_checkpoint'],
                 loss_fn=loss_fn, iters_til_checkpoint=args['TrainSpecs']['iters_til_checkpoint'],
-                clip_grad=False, val_loss_fn=val_loss_fn, overwrite=True)
+                clip_grad=False, val_loss_fn=val_loss_fn, overwrite=True,
+                logger=opt.logger, val_dataloader=val_dataloader)
 
 
 if __name__ == '__main__':

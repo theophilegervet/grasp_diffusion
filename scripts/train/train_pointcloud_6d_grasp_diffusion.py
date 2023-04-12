@@ -22,7 +22,8 @@ def parse_args():
     p.add_argument('--specs_file_dir', type=str, default=os.path.join(base_dir, 'params')
                    , help='root for saving logging')
 
-    p.add_argument('--spec_file', type=str, default='multiobject_p_graspdif'
+    #p.add_argument('--spec_file', type=str, default='multiobject_p_graspdif'
+    p.add_argument('--spec_file', type=str, default='multiobject_p_graspdif_huggingface'
                    , help='root for saving logging')
 
     p.add_argument('--summary', type=bool, default=False
@@ -40,6 +41,8 @@ def parse_args():
     p.add_argument('--device',  type=str, default='cuda',)
     p.add_argument('--class_type', type=str, default='Mug')
     p.add_argument('--logger', type=str, choices=['tensorboard', 'wandb'], default='wandb')
+
+    p.add_argument('--pretrained_model', type=str, default=None)
 
     opt = p.parse_args()
     return opt
@@ -79,11 +82,14 @@ def main(opt):
     test_dataset.set_test_data()
     test_dataloader = DataLoader(
         test_dataset,
+        num_workers=args['TrainSpecs']['num_workers'],
         batch_size=args['TrainSpecs']['batch_size'],
         shuffle=True, drop_last=True
     )
 
     ## Model
+    if opt.pretrained_model is not None:
+        args["pretrained_model"] = opt.pretrained_model
     args['device'] = device
     model = loader.load_model(args)
 

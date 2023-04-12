@@ -9,6 +9,7 @@ from se3dif.visualization import grasp_visualization
 import tempfile
 from se3dif.eval import earth_mover_distance
 
+import torch
 import numpy as np
 
 def denoising_summary(model, model_input, ground_truth, info, writer, iter, prefix=""):
@@ -27,10 +28,13 @@ def denoising_summary(model, model_input, ground_truth, info, writer, iter, pref
     H = H.unsqueeze(0)
     trj_H = trj_H.unsqueeze(0)
 
-    H_norm = to_numpy(H[0, :num_grasps, ...]).copy()
-    H_norm[:, :3, -1] *= 1/8
-    trj_H = to_numpy(trj_H[0, :num_grasps, ...])
+    print(H.shape, trj_H.shape)
+    H_norm_all = to_numpy(H[0, ...]).copy()
+    H_norm_all[:, :3, -1] *= 1/8
+    H_norm = H_norm_all[:num_grasps, ...].copy()
+    trj_H = to_numpy(trj_H[0, ...])
     trj_H[..., :3, -1] *= 1/8.
+    print(H_norm.shape, trj_H.shape)
 
     if observation.dim()==3:
         point_cloud = to_numpy(model_input['visual_context'])[0,...]/8.
@@ -59,9 +63,10 @@ def denoising_summary(model, model_input, ground_truth, info, writer, iter, pref
             print("No display found. Skipping grasp visualization.")
     
     write_grasps(H_norm, "generated_grasps")
-    gt_grasps = model_input["x_ene_pos"][0, :num_grasps, :, :].cpu().numpy().copy()
+    #gt_grasps = model_input["x_ene_pos"][0, :num_grasps, :, :].cpu().numpy().copy()
+    gt_grasps = model_input["x_ene_pos"][0, ...].cpu().numpy().copy()
     gt_grasps[:, :3, -1]*=1/8
-    write_grasps(gt_grasps, "ground_truth_grasps")
+    write_grasps(gt_grasps[:num_grasps, ...], "ground_truth_grasps")
 
     # Visualize diffusion trajectory: Only one trajectory with num_grasps grasp poses
     T = np.linspace(0, trj_H.shape[0]-1, num_grasps).astype(int)
@@ -71,10 +76,12 @@ def denoising_summary(model, model_input, ground_truth, info, writer, iter, pref
     write_grasps(trj_H, "diffusion_trajectory", grasp_colors=colors)
 
     # log earth mover distances
-    emd = 0
-    for i in range(H.shape[0]):
-        emd += earth_mover_distance.earth_mover_distance(H[i], model_input["x_ene_pos"][i])
-    emd /= H.shape[0]
+    # emd = 0
+    # for i in range(H.shape[0]):
+    #     emd += earth_mover_distance.earth_mover_distance(H[i], model_input["x_ene_pos"][i])
+    # emd /= H.shape[0]
+    # torch tensor from numpy array H_norm_all
+    emd = earth_mover_distance.earth_mover_distance(torch.from_numpy(H_norm_all), torch.from_numpy(gt_grasps))
     print("emd", emd)
     if writer == "wandb":
         wandb.log({prefix+"emd" : emd}, step=iter)

@@ -4,7 +4,7 @@
   "single_object": false,
   "TrainSpecs": {
     "batch_size": 6,
-    "num_workers": 2,
+    "num_workers": 8,
     "num_epochs": 90000,
     "steps_til_summary": 500,
     "iters_til_checkpoint": 1000,
