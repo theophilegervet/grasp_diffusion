@@ -12,7 +12,7 @@ import time
 
 global_scale = 1
 # global_offset = np.array([10.0, 0, 1])
-global_offset = np.array([0.0, 0, 0])
+global_offset = np.array([10.0, 0, 0])
 
 test_grasp = torch.eye(4)
 # manually defined eye(4)
@@ -111,11 +111,12 @@ def plot_grasp(grasp_obj, grasp_ind):
 
 
 def get_sample_object_grasp():
-    grasp_ind = 7
-    grasp_file = "/home/sirdome/katefgroup/tschindl/datasets/analogical_grasping/grasps/Cup/Cup_106f8b5d2f2c777535c291801eaf5463_6.809242501596408e-05.h5"
+    grasp_ind = 8
+    # grasp_file = "/home/sirdome/katefgroup/tschindl/datasets/analogical_grasping/grasps/Cup/Cup_106f8b5d2f2c777535c291801eaf5463_6.809242501596408e-05.h5"
+    grasp_file = "/home/sirdome/katefgroup/tschindl/datasets/analogical_grasping/grasps/Couch/Couch_10507ae95f984daccd8f3fe9ca2145e1_0.0018094472023835973.h5"
 
     grasp_obj = AcronymGrasps(grasp_file)
-    plot_grasp(grasp_obj, grasp_ind)
+    # plot_grasp(grasp_obj, grasp_ind)
     with h5py.File(grasp_file, 'r') as data:
         mesh_fname = data["object/file"][()].decode('utf-8')
         mesh_type = mesh_fname.split('/')[1]
@@ -137,6 +138,7 @@ def get_sample_object_grasp():
          dtype=np.float32
     )
     grasp = grasp_obj.good_grasps[grasp_ind,...]
+    # grasp = grasp_obj.bad_grasps[grasp_ind,...]
 
     # grasp[:3, 3] = 0
 
@@ -165,7 +167,8 @@ def get_sample_object_grasp():
 
     res = {
         'object_root': '/home/sirdome/katefgroup/tschindl/grasp_diffusion/assets/',
-        'object_file': 'test_mesh_2.urdf',
+        # 'object_file': 'test_mesh_2.urdf',
+        # 'object_file': 'test_mesh_couch.urdf',
         'object_scale': mesh_scale,
 
         'grasp': grasp
@@ -182,11 +185,12 @@ def setup_sim(gym):
 
     # set common parameters
     sim_params.up_axis = gymapi.UP_AXIS_Z
-    sim_params.dt = 1 / 3000
+    # sim_params.dt = 1 / 300
+    sim_params.dt = 1 / 60
     sim_params.substeps = 2
     sim_params.up_axis = gymapi.UP_AXIS_Z
-    # sim_params.gravity = gymapi.Vec3(0.0, 0.0, -9.8)
-    sim_params.gravity = gymapi.Vec3(0.0, 0.0, 0.0)
+    sim_params.gravity = gymapi.Vec3(0.0, 0.0, -9.8)
+    # sim_params.gravity = gymapi.Vec3(0.0, 0.0, 0.0)
 
     # set PhysX-specific parameters
     # sim_params.physx.use_gpu = True
@@ -226,8 +230,8 @@ def load_ground_plane(gym, sim):
     plane_params = gymapi.PlaneParams()
     plane_params.normal = gymapi.Vec3(0, 0, 1) # z-up!
     plane_params.distance = 0
-    plane_params.static_friction = 1
-    plane_params.dynamic_friction = 1
+    plane_params.static_friction = 0
+    plane_params.dynamic_friction = 0
     plane_params.restitution = 0
 
     # create the ground plane
@@ -252,11 +256,13 @@ def load_panda(gym: gymapi.Gym, sim):
     asset_options.override_inertia = True
     asset_options.disable_gravity = True
     asset_options.flip_visual_attachments = True
+    # asset_options.vhacd_enabled = True
     panda_asset = gym.load_asset(sim, asset_root, panda_asset_file, asset_options)
 
     obj_prop = gymapi.RigidShapeProperties()
     obj_prop.friction = 3.0
     obj_prop.restitution = 0.9
+    # obj_prop.rest_offset = 0.1
     gym.set_asset_rigid_shape_properties(panda_asset, [obj_prop])
     # configure panda dofs
     panda_dof_props = gym.get_asset_dof_properties(panda_asset)
@@ -294,7 +300,7 @@ def load_obj(gym, sim, object_root, object_file):
     current_asset = gym.load_asset(sim, object_root, object_file, asset_options)
     obj_prop = gymapi.RigidShapeProperties()
     obj_prop.friction = 5.0
-    # obj_prop.restitution = 0.9
+    obj_prop.restitution = 0.9
     obj_prop.rolling_friction = 3.0
     gym.set_asset_rigid_shape_properties(current_asset, [obj_prop])
 
@@ -348,7 +354,7 @@ def create_env(gym, sim):
     print(panda_pose.r, panda_pose.p)
     print("res point", panda_pose.transform_point(gymapi.Vec3(1, 2, 3)))
 
-    panda_handle = gym.create_actor(env, panda_asset, panda_pose, "Gripper", 0)
+    panda_handle = gym.create_actor(env, panda_asset, panda_pose, "Gripper", group=1, filter=0)
     # actor_handle = gym.create_actor(env, panda_asset, panda_dof_props, "Gripper")
 
     gym.set_actor_scale(env, panda_handle, global_scale)
@@ -357,7 +363,7 @@ def create_env(gym, sim):
     gym.set_actor_dof_states(env, panda_handle, default_dof_state, gymapi.STATE_ALL)
     gym.set_actor_dof_position_targets(env, panda_handle, default_dof_pos)
 
-    
+ 
     # Object to grasp
     obj_asset = load_obj(gym, sim, object_data['object_root'], object_data['object_file'])
 
@@ -367,26 +373,64 @@ def create_env(gym, sim):
     obj_pose.p = gymapi.Vec3(global_offset[0], global_offset[1], global_offset[2])
     obj_pose.r = gymapi.Quat.from_euler_zyx(0.0, 0.0, 0.0)
     # pose.r = gymapi.Quat(-0.707107, 0.0, 0.0, 0.707107)
-    obj_handle = gym.create_actor(env, obj_asset, obj_pose, "Object", 0)
+    obj_handle = gym.create_actor(env, obj_asset, obj_pose, "Object", group=1, filter=0)
     color = gymapi.Vec3(np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1))
     gym.set_rigid_body_color(env, obj_handle, 0, gymapi.MESH_VISUAL_AND_COLLISION, color)
     
     print(object_data['object_scale'])
     gym.set_actor_scale(env, obj_handle, object_data['object_scale'] * global_scale)
 
+    obj_asset_loaded = gym.get_actor_asset(env, obj_handle)
+    gym.debug_print_asset(obj_asset_loaded)
+    obj_asset_loaded = gym.get_actor_asset(env, panda_handle)
+    gym.debug_print_asset(obj_asset_loaded)
+
     return env, panda_handle
 
+def move_up(gym, sim, panda_handle):
+    pass
+
 def run_sim(gym, sim, env, panda_handle, viewer):
+    _root_tensor = gym.acquire_actor_root_state_tensor(sim)
+    root_tensor = gymtorch.wrap_tensor(_root_tensor)
+
     step = 0
     while not gym.query_viewer_has_closed(viewer):
-        # if step == 300:
-        #     # gym.set_dof_position_target_tensor(env, panda_handle, np.zeros(2, gymapi.DofState.dtype))
-        #     gym.set_dof_position_target_tensor(sim, gymtorch.unwrap_tensor(torch.zeros(2)))
-        # if step == 3000:
-        #     add_gravity(gym, sim)
+        if step == 100:
+            print("========== start closing ==========")
+            # gym.set_dof_position_target_tensor(env, panda_handle, np.zeros(2, gymapi.DofState.dtype))
+            gym.set_dof_position_target_tensor(sim, gymtorch.unwrap_tensor(torch.zeros(2)))
+            # panda_dof_props = gym.get_actor_dof_properties(env, panda_handle)
+            # panda_dof_props["driveMode"].fill(gymapi.DOF_MODE_EFFORT)
+            # gym.set_actor_dof_properties(env, panda_handle, panda_dof_props)
+            # gym.set_actor_dof_position_targets(env, panda_handle, torch.zeros(2))
+            # gym.set_dof_actuation_force_tensor_indexed(sim, gymtorch.unwrap_tensor(- torch.ones(2)), gymtorch.unwrap_tensor(torch.tensor([panda_handle], dtype=torch.int32)), 1)
+            # gym.apply_actor_dof_efforts(env, panda_handle, np.ones(2, dtype=np.float32))
+            # gym.apply_actor_dof_efforts(sim, panda_handle, -np.ones(2))
+        if step >= 300:
+            if step == 300:
+                print("========== move up ==========")
+                # add_gravity(gym, sim)
+                move_up(gym, sim, panda_handle)
+            # print(root_tensor, panda_handle)
+            rigid_obj = torch.clone(root_tensor)
+            rigid_obj[0, 2] += 0.0005
+            actor_indices = torch.tensor([panda_handle], dtype=torch.int32, device=root_tensor.device)
+            gym.set_actor_root_state_tensor_indexed(sim, gymtorch.unwrap_tensor(rigid_obj),
+                                                    gymtorch.unwrap_tensor(actor_indices),
+                                                    1)
         step += 1
         gym.simulate(sim)
         gym.fetch_results(sim, True)
+
+        gym.refresh_rigid_body_state_tensor(sim)
+        gym.refresh_dof_state_tensor(sim)
+        gym.refresh_dof_force_tensor(sim)
+        gym.refresh_mass_matrix_tensors(sim)
+        gym.refresh_actor_root_state_tensor(sim)
+        gym.refresh_net_contact_force_tensor(sim)
+        gym.refresh_jacobian_tensors(sim)
+
         gym.step_graphics(sim)
         gym.draw_viewer(viewer, sim, True)
         gym.sync_frame_time(sim)

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<robot name="test_single_mesh">
+  <link name="my_mesh">
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="/home/sirdome/katefgroup/tschindl/datasets/analogical_grasping/meshes/Cup/106f8b5d2f2c777535c291801eaf5463.obj"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="/home/sirdome/katefgroup/tschindl/datasets/analogical_grasping/meshes/Cup/106f8b5d2f2c777535c291801eaf5463.obj"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>

@@ -431,7 +431,8 @@ class PointcloudAcronymAndSDFDataset(Dataset):
         res = {'visual_context': torch.from_numpy(pcl).float(),
                'x_sdf': torch.from_numpy(xyz).float(),
                'x_ene_pos': torch.from_numpy(H_grasps).float(),
-               'scale': torch.Tensor([self.scale]).float()}
+               'scale': torch.Tensor([self.scale]).float(),
+               'file_name': self.train_grasp_files[index]}
 
         return res, {'sdf': torch.from_numpy(sdf).float()}
 
